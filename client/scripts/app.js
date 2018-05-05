@@ -49,8 +49,6 @@ const app = {
         this.currentRoom;
         this.chatsBlock = $('#chats');
         this.dropdown = $('#roomSelect');
-        console.log('dropdown value is', this.dropdown[0].value)
-
         this.dropdown.change(() => {
             this.currentRoom = this.dropdown.val();
             console.log('current room is ', this.currentRoom)
@@ -61,14 +59,43 @@ const app = {
                 $(`.message:not(.${this.currentRoom})`).css('display', 'none');
             }
         })
-        app.fetch('http://parse.sfm6.hackreactor.com/chatterbox/classes/messages');
+
+        app.fetch('http://parse.sfm6.hackreactor.com/chatterbox/classes/messages', { 'order': '-createdAt' });
+
+        setInterval(() => {
+                    console.log('most recent message was: ', app.storedMessages[0].text);
+            let mostRecentDate = app.storedMessages[0].createdAt
+                    console.log('most recent message sent at: ', mostRecentDate);
+            $.ajax({
+                // This is the url you should use to communicate with the parse API server.
+                url: 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages',
+                type: 'GET',
+                data: "where=" + escape(JSON.stringify({ 'createdAt': { '$gt': { '__type': 'Date', 'iso': mostRecentDate } } })),
+                contentType: 'application/json',
+                success: function (data) {
+                    data.results.forEach(message => {
+                        sanitizedObj = app.sanitizeInput(message);
+                        app.storedMessages = [sanitizedObj, ...app.storedMessages];
+                        app.prependRenderMessage(sanitizedObj)
+                    });
+
+                    console.log('chatterbox: REFRESH request success', data.results);
+                },
+                error: function (data) {
+                    // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
+                    console.error('chatterbox: Failed to fetch message', data);
+                }
+            });
+        }, 500);
+
     },
-    fetch: function (url) {
+    fetch: function (url, data) {
+        console.log('data is', data)
         $.ajax({
             // This is the url you should use to communicate with the parse API server.
             url: url,
             type: 'GET',
-            data: { 'order': '-createdAt' },
+            data: data,
             contentType: 'application/json',
             success: function (data) {
                 data.results.forEach(message => {
@@ -123,6 +150,23 @@ const app = {
 
             let messageDiv = `<div class="message ${roomnameClass}"><span class="username">${username || 'no name'}</span> said: ${text}</div>`
             $(`#chats`).append(messageDiv);
+        }
+    }, prependRenderMessage: function (message) {
+        if (message.text && message.text.length > 0) {
+            let { roomname, text, username, createdAt, objectId } = message;
+            if (roomname + "" === 'undefined' || roomname + "" === 'null' || roomname.trim() === '') {
+                roomname = 'lobby';
+            }
+            let roomnameClass = roomname.split(' ').join('');
+
+            if (!app.storedRooms[roomname]) {
+                let roomnameOption = `<option class="${roomnameClass}" value="${roomnameClass}">"${roomname}"</option>`
+                app.dropdown.append(roomnameOption);
+                app.storedRooms[roomname] = true;
+            }
+
+            let messageDiv = `<div class="message ${roomnameClass}"><span class="username">${username || 'no name'}</span> said: ${text}</div>`
+            $(`#chats`).prepend(messageDiv);
         }
     },
     sanitizeInput: function (input) {
