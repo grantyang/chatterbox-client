@@ -102,7 +102,7 @@ describe('chatterbox', function() {
 
       it('should be able to add rooms to the DOM', function() {
         app.renderRoom('superLobby');
-
+        console.log($('#roomSelect').children())
         expect($('#roomSelect').children().length).to.equal(1);
       });
 
