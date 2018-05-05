@@ -43,11 +43,21 @@ const app = {
             this.modal.toggle();
         })
 
-        $('.username').on('click', () => {
-            console.log('hey')
+        $(document).on('click', '.username', (event) => {
+
+            console.log(event)
+            let friendName = event.target.innerText;
+            $(`.username:contains(${friendName})`).closest('.message').toggleClass('friend');
+
+            // if (this.myFriends[event.target.innerText]) {
+            //     this.myFriends[event.target.innerText] = !this.myFriends[event.target.innerText]
+            // } else {
+            //     this.myFriends[event.target.innerText] = true
+            // }
+            // console.log(this.myFriends[event.target.innerText])
         })
 
-        this.myFriends = [];
+        this.myFriends = {};
         this.storedMessages = [];
         this.storedRooms = {};
         this.currentRoom;
@@ -108,7 +118,7 @@ const app = {
         $('#chats').children().remove();
     },
     renderMessage: function (message) {
-        if (message.text.length > 0) {
+        if (message.text && message.text.length > 0) {
             let { roomname, text, username, createdAt, objectId } = message;
             console.log('roomname ', roomname)
             console.log('text ', text)
@@ -130,10 +140,10 @@ const app = {
         }
     },
     sanitizeInput: function (input) {
-        let scriptPattern = /<script>|<\/script>|$\(|<\/|function\(|=>/gi;
+        let scriptPattern = /<script>|<\/script>|$\(|<\/|function\(|=>|<img/gi;
         let sanitizedObj = {};
         for (let key in input) {
-            if (input[key] !== undefined) {
+            if (input[key] !== undefined && input[key] !== null) {
                 sanitizedObj[key] = input[key].replace(scriptPattern, '');
             } else {
                 sanitizedObj[key] = undefined;
@@ -142,7 +152,7 @@ const app = {
         return sanitizedObj;
     },
     renderRoom: function (input) {
-        let scriptPattern = /<script>|<\/script>|$\(|<\/|function\(|=>/gi;
+        let scriptPattern = /<script>|<\/script>|$\(|<\/|function\(|=>|<img/gi;
         let sanitizedName = input.replace(scriptPattern, '');
         if (!app.storedRooms[sanitizedName]) {
             let roomnameOption = `<option class="${sanitizedName}" value="${sanitizedName}">${sanitizedName}</option>`
