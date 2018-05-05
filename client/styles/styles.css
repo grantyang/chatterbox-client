@@ -1,15 +1,21 @@
 body {
-    background: #eee;
+    background: lightslategrey;;
     text-align: center;
     padding: 0 25px;
-    font-family: arial, sans-serif;
+    font-family: 'myFont';
+    
+}
+
+@font-face {
+    font-family: 'myFont'; /*a name to be used later*/
+    src: url(./DroidSans.ttf); /*URL to font*/
 }
 
 #main, #chats {
-    width: 500px;
+    width: 750px;
     margin: auto;
     text-align: left;
-    background: white;
+    background: lightblue;
     padding: 50px 60px;
     border: solid #ddd;
     border-width: 0 1px 1px 1px;
@@ -85,6 +91,7 @@ form input[type=text] {
 
 .friend {
     font-weight: bold;
+    color: darkred
 }
 
 .hidden {

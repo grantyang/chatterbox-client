@@ -1,24 +1,7 @@
 // YOUR CODE HERE:
 // Server: http://parse.sfm6.hackreactor.com/
 // escape notes: &, <, >, ", ', `, , !, @, $, %, (, ), =, +, {, }, [, and ] 
-// http://parse.sfm6.hackreactor.com/chatterbox/classes/messages
-//
-// $.ajax({
-//   // This is the url you should use to communicate with the parse API server.
-//   url: 'http://parse.CAMPUS.hackreactor.com/chatterbox/classes/messages',
-//   type: 'POST',
-//   data: JSON.stringify(message),
-//   contentType: 'application/json',
-//   success: function (data) {
-//     console.log('chatterbox: Message sent');
-//   },
-//   error: function (data) {
-//     // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
-//     console.error('chatterbox: Failed to send message', data);
-//   }
-// });
 
-//
 const app = {
     init: function () {
         // Get the modal
@@ -44,34 +27,41 @@ const app = {
         })
 
         $(document).on('click', '.username', (event) => {
-
-            console.log(event)
             let friendName = event.target.innerText;
             $(`.username:contains(${friendName})`).closest('.message').toggleClass('friend');
+        })
 
-            // if (this.myFriends[event.target.innerText]) {
-            //     this.myFriends[event.target.innerText] = !this.myFriends[event.target.innerText]
-            // } else {
-            //     this.myFriends[event.target.innerText] = true
-            // }
-            // console.log(this.myFriends[event.target.innerText])
+        $('#sendMessageBtn').on('click', (event) => {
+            let currentRoom = this.dropdown.val();
+            let newMessage = $('#inputValue').val();
+            let username = app.getUsername();
+            let messageObj = {
+                roomname: currentRoom,
+                text: newMessage,
+                username: username
+            }
+            app.send(messageObj);
         })
 
         this.myFriends = {};
         this.storedMessages = [];
-        this.storedRooms = {};
+        this.storedRooms = { 'lobby': true };
         this.currentRoom;
         this.chatsBlock = $('#chats');
         this.dropdown = $('#roomSelect');
+        console.log('dropdown value is', this.dropdown[0].value)
+
         this.dropdown.change(() => {
             this.currentRoom = this.dropdown.val();
             console.log('current room is ', this.currentRoom)
-            if (this.currentRoom !== undefined || this.currentRoom !== '') {
-                $(`.message:not(.${this.currentRoom})`).toggle();
+            if (this.currentRoom === 'lobby') {
+                $(`.message`).css('display', 'block');
+            } else {
+                $(`.${this.currentRoom}`).css('display', 'block');
+                $(`.message:not(.${this.currentRoom})`).css('display', 'none');
             }
         })
         app.fetch('http://parse.sfm6.hackreactor.com/chatterbox/classes/messages');
-        console.log(this.storedMessages)
     },
     fetch: function (url) {
         $.ajax({
@@ -120,23 +110,19 @@ const app = {
     renderMessage: function (message) {
         if (message.text && message.text.length > 0) {
             let { roomname, text, username, createdAt, objectId } = message;
-            console.log('roomname ', roomname)
-            console.log('text ', text)
+            if (roomname + "" === 'undefined' || roomname + "" === 'null' || roomname.trim() === '') {
+                roomname = 'lobby';
+            }
+            let roomnameClass = roomname.split(' ').join('');
+
             if (!app.storedRooms[roomname]) {
-                let roomnameOption = `<option class="${roomname}" value="${roomname}">${roomname}</option>`
+                let roomnameOption = `<option class="${roomnameClass}" value="${roomnameClass}">"${roomname}"</option>`
                 app.dropdown.append(roomnameOption);
                 app.storedRooms[roomname] = true;
             }
 
-            let messageDiv = `<div class="message ${roomname}"><span class="username">${username || 'no name'}</span> said: ${text}</div>`
+            let messageDiv = `<div class="message ${roomnameClass}"><span class="username">${username || 'no name'}</span> said: ${text}</div>`
             $(`#chats`).append(messageDiv);
-
-            // $('#chats').append(sanitizedMessageDiv);
-            // if (storedRooms.includes(message.roomname)) {
-            //     //if room exists, add message to room
-            //     $(`.${roomname}`)
-            // }
-            // //create room, add messsage to room
         }
     },
     sanitizeInput: function (input) {
@@ -161,49 +147,20 @@ const app = {
         } else {
             alert('Room already exists!')
         }
+    },
+    getUsername: function () {
+        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
 
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
 
+            if (sParameterName[0] === 'username') {
+                return sParameterName[1] === undefined ? true : sParameterName[1];
+            }
+        }
     }
 }
 app.init()
-
-// $.ajax({
-//     // This is the url you should use to communicate with the parse API server.
-//     url: 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages',
-//     type: 'GET',
-//     contentType: 'application/json',
-//     data: { 'order': '-createdAt' },
-//     success: function (data) {
-//         let scriptPattern = /<script>|<\/script>|$\(|<\/|function\(|=>/gi;
-//         let chatsBlock = $('#chats');
-//         let roomDropdown = $('#roomDropdown');
-
-//         data.results.forEach(message => {
-//             console.log(this)
-//             sanitizedObj = sanitizeInput(message);
-            // let sanitizedRoomname = sanitizedObj.roomname;
-            // let sanitizedText = sanitizedObj.text;
-//             for (let key in sanitizedObj) {
-//                 if (key === 'roomname' && $(`.${sanitizedRoomname}`).length === 0) {
-//                     let sanitizedRoomnameDiv = `<div class="room ${sanitizedRoomname} hidden"></div>`
-//                     let sanitizedRoomnameOption = `<option value="${sanitizedRoomname}">${sanitizedRoomname}</option>`
-//                     //<option value="volvo">Volvo</option>
-//                     chatsBlock.append(sanitizedRoomnameDiv);
-//                     roomDropdown.append(sanitizedRoomnameOption);
-//                 }
-//                 if (key === 'text') {
-//                     let sanitizedMessageDiv = `<div>${sanitizedText}</div>`
-//                     if ($(`.${sanitizedRoomname}`).length !== 0) {
-//                         $(`.${sanitizedRoomname}`).append(sanitizedMessageDiv);
-//                     }
-//                 }
-//                 storedMessages.push(message);
-//             }
-//         });
-//         console.log('chatterbox: GET request success', data);
-//     },
-//     error: function (data) {
-//         // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
-//         console.error('chatterbox: GET request failed', data);
-//     }
-// });
