@@ -27,38 +27,39 @@ const app = {
         // Get the button that opens the modal
         this.btn = $('#myBtn');
 
-        // Get the <span> element that closes the modal
-        this.span = $('.close')[0];
-
         // When the user clicks on the button, open the modal 
         this.btn.on('click', () => {
-            console.log(this)
             this.modal.toggle();
         })
 
         // When the user clicks on <span> (x), close the modal
-        this.span.onclick = () => {
+        $('.close').on('click', () => {
             this.modal.toggle();
-        }
+        });
 
-        // When the user clicks anywhere outside of the modal, close it
-        window.onclick = (event) => {
-            if (event.target == this.modal) {
-                this.modal.toggle();
-            }
-        }
-
-        let createRoomBtn = $('#createRoomBtn');
-        createRoomBtn.on('click', () => {
+        $('#createRoomBtn').on('click', () => {
             let newName = $('#newRoomName').val()
             app.renderRoom(newName);
             this.modal.toggle();
         })
 
+        $('.username').on('click', () => {
+            console.log('hey')
+        })
+
+        this.myFriends = [];
         this.storedMessages = [];
         this.storedRooms = {};
+        this.currentRoom;
         this.chatsBlock = $('#chats');
         this.dropdown = $('#roomSelect');
+        this.dropdown.change(() => {
+            this.currentRoom = this.dropdown.val();
+            console.log('current room is ', this.currentRoom)
+            if (this.currentRoom !== undefined || this.currentRoom !== '') {
+                $(`.message:not(.${this.currentRoom})`).toggle();
+            }
+        })
         app.fetch('http://parse.sfm6.hackreactor.com/chatterbox/classes/messages');
         console.log(this.storedMessages)
     },
@@ -83,7 +84,7 @@ const app = {
             },
             error: function (data) {
                 // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
-                console.error('chatterbox: Failed to send message', data);
+                console.error('chatterbox: Failed to fetch message', data);
             }
         });
     },
@@ -107,28 +108,26 @@ const app = {
         $('#chats').children().remove();
     },
     renderMessage: function (message) {
-        let { roomname, text, username, createdAt, objectId } = message;
-        console.log('roomname ', roomname)
-        console.log('text ', text)
-        console.log('username ', username)
-        console.log('createdAt ', createdAt)
-        console.log('objectId ', objectId)
-        if (!app.storedRooms[roomname]) {
-            let roomnameOption = `<option class="${roomname}" value="${roomname}">${roomname}</option>`
-            app.dropdown.append(roomnameOption);
-            app.storedRooms[roomname] = true;
+        if (message.text.length > 0) {
+            let { roomname, text, username, createdAt, objectId } = message;
+            console.log('roomname ', roomname)
+            console.log('text ', text)
+            if (!app.storedRooms[roomname]) {
+                let roomnameOption = `<option class="${roomname}" value="${roomname}">${roomname}</option>`
+                app.dropdown.append(roomnameOption);
+                app.storedRooms[roomname] = true;
+            }
+
+            let messageDiv = `<div class="message ${roomname}"><span class="username">${username || 'no name'}</span> said: ${text}</div>`
+            $(`#chats`).append(messageDiv);
+
+            // $('#chats').append(sanitizedMessageDiv);
+            // if (storedRooms.includes(message.roomname)) {
+            //     //if room exists, add message to room
+            //     $(`.${roomname}`)
+            // }
+            // //create room, add messsage to room
         }
-
-        let messageDiv = `<div class="${roomname}">${text}</div>`
-        $(`#chats`).append(messageDiv);
-
-        // $('#chats').append(sanitizedMessageDiv);
-
-        // if (storedRooms.includes(message.roomname)) {
-        //     //if room exists, add message to room
-        //     $(`.${roomname}`)
-        // }
-        // //create room, add messsage to room
     },
     sanitizeInput: function (input) {
         let scriptPattern = /<script>|<\/script>|$\(|<\/|function\(|=>/gi;
@@ -145,9 +144,15 @@ const app = {
     renderRoom: function (input) {
         let scriptPattern = /<script>|<\/script>|$\(|<\/|function\(|=>/gi;
         let sanitizedName = input.replace(scriptPattern, '');
-        let roomnameOption = `<option class="${sanitizedName}" value="${sanitizedName}">${sanitizedName}</option>`
-        app.dropdown.append(roomnameOption);
-        app.storedRooms[sanitizedName] = true;
+        if (!app.storedRooms[sanitizedName]) {
+            let roomnameOption = `<option class="${sanitizedName}" value="${sanitizedName}">${sanitizedName}</option>`
+            app.dropdown.append(roomnameOption);
+            app.storedRooms[sanitizedName] = true;
+        } else {
+            alert('Room already exists!')
+        }
+
+
     }
 }
 app.init()
