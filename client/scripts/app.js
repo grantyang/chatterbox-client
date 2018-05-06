@@ -86,7 +86,7 @@ const app = {
                     console.error('chatterbox: Failed to fetch message', data);
                 }
             });
-        }, 500);
+        }, 1000);
 
     },
     fetch: function (url, data) {
@@ -148,7 +148,7 @@ const app = {
                 app.storedRooms[roomname] = true;
             }
 
-            let messageDiv = `<div class="message ${roomnameClass}"><span class="username">${username || 'no name'}</span> said: ${text}</div>`
+            let messageDiv = `<div class="message ${roomnameClass}"><span class="username">${username || 'no name'}</span><span class="messageText">: ${text}</span></div>`
             $(`#chats`).append(messageDiv);
         }
     }, prependRenderMessage: function (message) {
@@ -165,16 +165,17 @@ const app = {
                 app.storedRooms[roomname] = true;
             }
 
-            let messageDiv = `<div class="message ${roomnameClass}"><span class="username">${username || 'no name'}</span> said: ${text}</div>`
+            let messageDiv = `<div class="message ${roomnameClass}"><span class="username">${username || 'no name'}</span><span class="messageText">: ${text}</span></div>`
             $(`#chats`).prepend(messageDiv);
         }
     },
     sanitizeInput: function (input) {
-        let scriptPattern = /<script>|<\/script>|$\(|<\/|function\(|=>|<img/gi;
+        // let scriptPattern = /<script>|<\/script>|$\(|<\/|function\(|=>|<img|#.+{|\..+{|<style>|<\/style>/gi;
         let sanitizedObj = {};
         for (let key in input) {
             if (input[key] !== undefined && input[key] !== null) {
-                sanitizedObj[key] = input[key].replace(scriptPattern, '');
+                sanitizedObj[key] = _.escape(input[key])
+                // sanitizedObj[key] = input[key].replace(scriptPattern, '');
             } else {
                 sanitizedObj[key] = undefined;
             }
@@ -182,8 +183,9 @@ const app = {
         return sanitizedObj;
     },
     renderRoom: function (input) {
-        let scriptPattern = /<script>|<\/script>|$\(|<\/|function\(|=>|<img/gi;
-        let sanitizedName = input.replace(scriptPattern, '');
+        // let scriptPattern = /<script>|<\/script>|$\(|<\/|function\(|=>|<img|#.+{|\..+{|<style>|<\/style>/gi;
+        let sanitizedName = _.escape(input)
+        // let sanitizedName = input.replace(scriptPattern, '');
         if (!app.storedRooms[sanitizedName]) {
             let roomnameOption = `<option class="${sanitizedName}" value="${sanitizedName}">${sanitizedName}</option>`
             app.dropdown.append(roomnameOption);

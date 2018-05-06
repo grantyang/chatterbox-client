@@ -1,9 +1,9 @@
 body {
-    background: lightslategrey;;
+    background: lightslategrey;
+    background-image: url('../images/color_square.gif');
     text-align: center;
     padding: 0 25px;
     font-family: 'myFont';
-    
 }
 
 @font-face {
@@ -75,6 +75,7 @@ form input[type=text] {
     font-weight: 800;
 }
 
+
 .chat:hover {
     background-color: #ddd;
 }
@@ -93,6 +94,22 @@ form input[type=text] {
     font-weight: bold;
     color: darkred
 }
+
+.message {
+    border-top: 2px solid white;
+    border-left: 2px solid white;
+    border-right: 2px solid white;
+    padding: 5px;
+    border-radius: 15px;
+    margin-top: 10px;
+}
+
+.messageText {
+    max-width: 90%;
+    word-wrap: break-word;
+}
+
+
 
 .hidden {
     /*display: none;*/
@@ -137,6 +154,12 @@ form input[type=text] {
 }
 
 .username {
+    font-size: 18px;
     cursor: pointer;
+    color: rebeccapurple
+}
+
+.username:hover {
+    color: darkblue;
 }
 
